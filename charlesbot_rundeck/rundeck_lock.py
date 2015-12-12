@@ -12,7 +12,6 @@ import json
 import logging
 
 
-
 class RundeckLock(object):
 
     def __init__(self, token, url, channel):
@@ -24,7 +23,6 @@ class RundeckLock(object):
         self.slack = SlackConnection()
         self.locked_by_user = ""
 
-
     @asyncio.coroutine
     def toggle_rundeck_lock(self, slack_message):
         """
@@ -34,6 +32,14 @@ class RundeckLock(object):
         slack_user = SlackUser()
         yield from slack_user.retrieve_slack_user_info(self.slack,
                                                        slack_message.user)
+
+        if not self.is_user_authorized_to_lock(slack_user):
+            fail_msg = "Sorry <@%s>, you are not allowed to lock Rundeck executions"
+            self.log.warn(fail_msg)
+            yield from self.slack.send_channel_message(slack_message.channel,
+                                                       full_slack_msg)
+            return
+
         executions_allowed = yield from self.are_rundeck_executions_allowed()
         executions_allowed = not executions_allowed
         yield from self.toggle_rundeck_active_mode(slack_user, executions_allowed)
@@ -107,7 +113,7 @@ class RundeckLock(object):
         """
         locked_by_user = self.get_locked_by_user()
         if executions_allowed:
-            return "Rundeck executions open :white_check_mark:"
+            return "Rundeck executions enabled! :white_check_mark:"
         return ":lock: Rundeck executions locked by <@%s> :lock:" % locked_by_user
 
     @asyncio.coroutine
@@ -132,3 +138,10 @@ class RundeckLock(object):
         out_message = self.get_execution_status_message(executions_allowed)
         yield from self.slack.send_channel_message(slack_message.channel,
                                                    out_message)
+
+    def is_user_authorized_to_lock(self, slack_user_obj):
+        """
+        Returns True or False, depending on whether this user is authorized to
+        lock rundeck executions.
+        """
+        return slack_user_obj.is_admin

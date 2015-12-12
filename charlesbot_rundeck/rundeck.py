@@ -29,7 +29,6 @@ class Rundeck(BasePlugin):
             self.topic_channel = config_dict['rundeck']['deployment_status_channel']
         except KeyError:
             self.topic_channel = None
-        self.locked_by_user = "@nobody"
 
     def get_help_message(self):
         help_msg = []
