@@ -7,7 +7,6 @@ from charlesbot.slack.slack_message import SlackMessage
 from charlesbot_rundeck.http import http_get_request
 from charlesbot_rundeck.http import http_post_request
 from charlesbot_rundeck.rundeck_lock import RundeckLock
-from charlesbot_rundeck.rundeck_job import RundeckJob
 import asyncio
 import json
 
@@ -17,12 +16,10 @@ class Rundeck(BasePlugin):
     def __init__(self):
         super().__init__("Rundeck")
         self.load_config()
-        self.rundeck_jobs = []
         self.rundeck_lock = RundeckLock(self.rundeck_token,
                                         self.rundeck_url,
                                         self.topic_channel,
-                                        self.rundeck_jobs)
-        self.seed_job_list()
+                                        self.rd_jobs_raw_list)
 
     def load_config(self):  # pragma: no cover
         config_dict = configuration.get()
@@ -33,11 +30,7 @@ class Rundeck(BasePlugin):
             self.topic_channel = config_dict['rundeck']['deployment_status_channel']
         except KeyError:
             self.topic_channel = None
-        self.rd_jobs_raw_list = config_dict['rundeck']['jobs']
-
-    def seed_job_list(self):  # pragma: no cover
-        loop = asyncio.get_event_loop()
-        loop.create_task(self.load_rundeck_jobs(self.rd_jobs_raw_list))
+        self.rd_jobs_raw_list = config_dict['rundeck']['lock_jobs']
 
     def get_help_message(self):
         help_msg = []
@@ -65,13 +58,3 @@ class Rundeck(BasePlugin):
         elif does_msg_contain_prefix("status", parsed_message):
             yield from self.rundeck_lock.print_lock_status(message)
 
-    @asyncio.coroutine
-    def load_rundeck_jobs(self, rd_jobs_raw_list):
-        for job in rd_jobs_raw_list:
-            rd_job = RundeckJob(friendly_name=job['friendly_name'])
-            yield from rd_job.retrieve_rundeck_job_info(self.rundeck_token,
-                                                        self.rundeck_url,
-                                                        job['project'],
-                                                        job['name'])
-            self.log.info("Retrieved Rundeck info for job: %s" % job['friendly_name'])
-            self.rundeck_jobs.append(rd_job)

@@ -8,6 +8,7 @@ from charlesbot.slack.slack_connection import SlackConnection
 from charlesbot_rundeck.http import http_get_request
 from charlesbot_rundeck.http import http_get_xml_request
 from charlesbot_rundeck.http import http_post_request
+from charlesbot_rundeck.rundeck_job import RundeckJob
 import xml.etree.ElementTree as etree
 import asyncio
 import json
@@ -24,7 +25,9 @@ class RundeckLock(object):
         self.topic_channel_id = None
         self.slack = SlackConnection()
         self.locked_by_user = ""
-        self.rundeck_jobs = jobs
+        self.rundeck_jobs = []
+        self.rd_jobs_raw_list = jobs
+        self.seed_job_list()
 
     @asyncio.coroutine
     def toggle_rundeck_lock(self, slack_message, lock_job):
@@ -170,3 +173,18 @@ class RundeckLock(object):
         lock rundeck executions.
         """
         return slack_user_obj.is_admin
+
+    def seed_job_list(self):  # pragma: no cover
+        loop = asyncio.get_event_loop()
+        loop.create_task(self.load_rundeck_jobs(self.rd_jobs_raw_list))
+
+    @asyncio.coroutine
+    def load_rundeck_jobs(self, rd_jobs_raw_list):
+        for job in rd_jobs_raw_list:
+            rd_job = RundeckJob(friendly_name=job['friendly_name'])
+            yield from rd_job.retrieve_rundeck_job_info(self.rundeck_token,
+                                                        self.rundeck_url,
+                                                        job['project'],
+                                                        job['name'])
+            self.log.info("Retrieved Rundeck info for job: %s" % job['friendly_name'])
+            self.rundeck_jobs.append(rd_job)
