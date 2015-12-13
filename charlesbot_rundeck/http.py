@@ -5,7 +5,7 @@ log = logging.getLogger(__name__)
 
 
 @asyncio.coroutine
-def http_post_request(url, headers):
+def http_post_request(url, headers):  # pragma: no cover
     response = yield from aiohttp.post(url, headers=headers)
     if not response.status == 200:
         text = yield from response.text()
@@ -19,7 +19,7 @@ def http_post_request(url, headers):
 
 
 @asyncio.coroutine
-def http_get_request(url, headers, params={}):
+def http_get_request(url, headers, params={}):  # pragma: no cover
     response = yield from aiohttp.get(url, headers=headers, params=params)
     if not response.status == 200:
         text = yield from response.text()
