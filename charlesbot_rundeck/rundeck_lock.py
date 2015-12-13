@@ -1,9 +1,4 @@
-from charlesbot.base_plugin import BasePlugin
-from charlesbot.config import configuration
-from charlesbot.util.parse import parse_msg_with_prefix
-from charlesbot.util.parse import does_msg_contain_prefix
 from charlesbot.slack.slack_user import SlackUser
-from charlesbot.slack.slack_message import SlackMessage
 from charlesbot.slack.slack_connection import SlackConnection
 from charlesbot_rundeck.http import http_get_request
 from charlesbot_rundeck.http import http_post_request
@@ -39,7 +34,7 @@ class RundeckLock(object):
                                                        slack_message.user)
 
         if not self.is_user_authorized_to_lock(slack_user):
-            fail_msg = "Sorry <@%s>, you are not allowed to lock Rundeck executions." % slack_user.name
+            fail_msg = "Sorry <@%s>, you are not allowed to lock Rundeck executions." % slack_user.name  # NOQA
             self.log.warning(fail_msg)
             yield from self.slack.send_channel_message(slack_message.channel,
                                                        fail_msg)
@@ -132,7 +127,7 @@ class RundeckLock(object):
         """
         locked_by_user = self.get_locked_by_user()
         if lock_job:
-            return ":lock: Rundeck executions locked by <@%s> :lock:" % locked_by_user
+            return ":lock: Rundeck executions locked by <@%s> :lock:" % locked_by_user  # NOQA
         return "Rundeck executions enabled! :white_check_mark:"
 
     @asyncio.coroutine
@@ -143,7 +138,7 @@ class RundeckLock(object):
             return
         topic_message = ""
         if lock_job:
-            topic_message = ":lock: Rundeck executions locked by @%s :lock:" % locked_by_user
+            topic_message = ":lock: Rundeck executions locked by @%s :lock:" % locked_by_user  # NOQA
         yield from self.slack.api_call('channels.setTopic',
                                        channel=topic_channel_id,
                                        topic=topic_message)
@@ -185,5 +180,5 @@ class RundeckLock(object):
                                                         self.rundeck_url,
                                                         job['project'],
                                                         job['name'])
-            self.log.info("Retrieved Rundeck info for job: %s" % job['friendly_name'])
+            self.log.info("Retrieved Rundeck info for job: %s" % job['friendly_name'])  # NOQA
             self.rundeck_jobs.append(rd_job)

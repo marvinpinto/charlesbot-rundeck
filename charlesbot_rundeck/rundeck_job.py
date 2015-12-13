@@ -18,7 +18,11 @@ class RundeckJob(BaseObject):
         super().__init__(**kwargs)
 
     @asyncio.coroutine
-    def retrieve_rundeck_job_info(self, rd_token, rd_baseurl, project_name, job_name):
+    def retrieve_rundeck_job_info(self,
+                                  rd_token,
+                                  rd_baseurl,
+                                  project_name,
+                                  job_name):
         url = "%s/api/14/project/%s/jobs" % (rd_baseurl, project_name)
         headers = {
             "Accept": "application/json",

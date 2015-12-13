@@ -3,6 +3,7 @@ import aiohttp
 import logging
 log = logging.getLogger(__name__)
 
+
 @asyncio.coroutine
 def http_post_request(url, headers):
     response = yield from aiohttp.post(url, headers=headers)
@@ -15,6 +16,7 @@ def http_post_request(url, headers):
         response.close()
         return ""
     return (yield from response.text())
+
 
 @asyncio.coroutine
 def http_get_request(url, headers, params={}):
