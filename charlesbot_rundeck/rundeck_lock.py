@@ -6,7 +6,9 @@ from charlesbot.slack.slack_user import SlackUser
 from charlesbot.slack.slack_message import SlackMessage
 from charlesbot.slack.slack_connection import SlackConnection
 from charlesbot_rundeck.http import http_get_request
+from charlesbot_rundeck.http import http_get_xml_request
 from charlesbot_rundeck.http import http_post_request
+import xml.etree.ElementTree as etree
 import asyncio
 import json
 import logging
@@ -14,7 +16,7 @@ import logging
 
 class RundeckLock(object):
 
-    def __init__(self, token, url, channel):
+    def __init__(self, token, url, channel, jobs):
         self.log = logging.getLogger(__name__)
         self.rundeck_token = token
         self.rundeck_url = url
@@ -22,9 +24,10 @@ class RundeckLock(object):
         self.topic_channel_id = None
         self.slack = SlackConnection()
         self.locked_by_user = ""
+        self.rundeck_jobs = jobs
 
     @asyncio.coroutine
-    def toggle_rundeck_lock(self, slack_message):
+    def toggle_rundeck_lock(self, slack_message, lock_job):
         """
         Coordinating function to toggle the Rundeck lock from open to locked,
         or visa versa. This is the user-triggered function.
@@ -34,25 +37,29 @@ class RundeckLock(object):
                                                        slack_message.user)
 
         if not self.is_user_authorized_to_lock(slack_user):
-            fail_msg = "Sorry <@%s>, you are not allowed to lock Rundeck executions"
-            self.log.warn(fail_msg)
+            fail_msg = "Sorry <@%s>, you are not allowed to lock Rundeck executions." % slack_user.name
+            self.log.warning(fail_msg)
             yield from self.slack.send_channel_message(slack_message.channel,
-                                                       full_slack_msg)
+                                                       fail_msg)
             return
+        self.locked_by_user = slack_user.name
 
-        executions_allowed = yield from self.are_rundeck_executions_allowed()
-        executions_allowed = not executions_allowed
-        yield from self.toggle_rundeck_active_mode(slack_user, executions_allowed)
-        self.log.info("Rundeck execution state enabled? %s" % str(executions_allowed))
-        self.log.info("Rundeck execution state toggled by @%s" % slack_user.name)
+        tasks = []
+        for job in self.rundeck_jobs:
+            tasks.append(self.lock_or_unlock_rundeck_job(job, lock_job))
+        yield from asyncio.gather(*tasks)
+
+        self.log.info("Rundeck jobs locked: %s" % lock_job)
+        self.log.info("Job state toggled by @%s" % slack_user.name)
 
         # To verify the current execution state
-        executions_allowed = yield from self.are_rundeck_executions_allowed()
+        yield from self.trigger_rundeck_executions_allowed_update()
 
-        full_slack_msg = self.get_execution_status_message(executions_allowed)
-        yield from self.set_channel_topic(executions_allowed)
+        full_slack_msg = self.get_execution_status_message(lock_job)
+        yield from self.set_channel_topic(lock_job)
         yield from self.slack.send_channel_message(slack_message.channel,
                                                    full_slack_msg)
+        yield from self.print_lock_status(slack_message)
 
     @asyncio.coroutine
     def get_topic_channel_id(self):
@@ -75,55 +82,65 @@ class RundeckLock(object):
         return self.locked_by_user
 
     @asyncio.coroutine
-    def toggle_rundeck_active_mode(self, slack_user_obj, enable_active_mode=True):
+    def lock_or_unlock_rundeck_job(self, rundeck_job_obj, lock_job):
         """
-        Call the appropriate Rundeck endpoint to enable or disable active mode
+        Lock the job associated with this RundeckJob object
         """
-        if enable_active_mode:
-            verb = "enable"
-            self.locked_by_user = ""
-        else:
+        verb = "enable"
+        if lock_job:
             verb = "disable"
-            self.locked_by_user = slack_user_obj.name
 
-        url = "%s/api/14/system/executions/%s" % (self.rundeck_url, verb)
+        url = "%s/execution/%s" % (rundeck_job_obj.href, verb)
         headers = {
             "Accept": "application/json",
             "X-Rundeck-Auth-Token": self.rundeck_token,
         }
         yield from http_post_request(url, headers)
+        rundeck_job_obj.execution_enabled = lock_job
 
     @asyncio.coroutine
-    def are_rundeck_executions_allowed(self):
+    def trigger_rundeck_executions_allowed_update(self):
+        tasks = []
+        for job in self.rundeck_jobs:
+            tasks.append(self.update_rundeck_job_execution_enabled_status(job))
+        yield from asyncio.gather(*tasks)
+
+    @asyncio.coroutine
+    def update_rundeck_job_execution_enabled_status(self, rundeck_job_obj):
         """
-        Return a truthy or falsy value, depending on whether rundeck executions
-        are allowed
+        Update the execution_enabled flag for this RundeckJob object to reflect
+        reality
         """
-        url = "%s/api/15/system/info" % self.rundeck_url
+        url = "%s" % rundeck_job_obj.href
         headers = {
-            "Accept": "application/json",
+            "Accept": "application/xml",  # As of Rundeck 2.6.2, this endpoint
+                                          # does not return json :(
             "X-Rundeck-Auth-Token": self.rundeck_token,
         }
-        response = yield from http_get_request(url, headers)
-        return response.get('system', {}).get('executions', {}).get('active', False)
+        response = yield from http_get_xml_request(url, headers)
+        xml_root = etree.fromstring(response)
+        execution_enabled = xml_root[0].find("executionEnabled").text
+        rundeck_job_obj.execution_enabled = False
+        if execution_enabled == "true":
+            rundeck_job_obj.execution_enabled = True
 
-    def get_execution_status_message(self, executions_allowed):
+    def get_execution_status_message(self, lock_job):
         """
         Return an appropriate user-facing message
         """
         locked_by_user = self.get_locked_by_user()
-        if executions_allowed:
-            return "Rundeck executions enabled! :white_check_mark:"
-        return ":lock: Rundeck executions locked by <@%s> :lock:" % locked_by_user
+        if lock_job:
+            return ":lock: Rundeck executions locked by <@%s> :lock:" % locked_by_user
+        return "Rundeck executions enabled! :white_check_mark:"
 
     @asyncio.coroutine
-    def set_channel_topic(self, executions_allowed):
+    def set_channel_topic(self, lock_job):
         topic_channel_id = yield from self.get_topic_channel_id()
         locked_by_user = self.get_locked_by_user()
         if not topic_channel_id:
             return
         topic_message = ""
-        if not executions_allowed:
+        if lock_job:
             topic_message = ":lock: Rundeck executions locked by @%s :lock:" % locked_by_user
         yield from self.slack.api_call('channels.setTopic',
                                        channel=topic_channel_id,
@@ -134,10 +151,18 @@ class RundeckLock(object):
         """
         Print the status of the Rundeck lock (whether open or locked)
         """
-        executions_allowed = yield from self.are_rundeck_executions_allowed()
-        out_message = self.get_execution_status_message(executions_allowed)
+        yield from self.trigger_rundeck_executions_allowed_update()
+        out_message = []
+        out_message.append("*Rundeck Job Lock Report*")
+        out_message.append("```")
+        for job in self.rundeck_jobs:
+            if job.execution_enabled:
+                out_message.append("%s: No" % job.friendly_name)
+            else:
+                out_message.append("%s: Yes" % job.friendly_name)
+        out_message.append("```")
         yield from self.slack.send_channel_message(slack_message.channel,
-                                                   out_message)
+                                                   "\n".join(out_message))
 
     def is_user_authorized_to_lock(self, slack_user_obj):
         """

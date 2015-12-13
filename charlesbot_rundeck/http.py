@@ -17,8 +17,8 @@ def http_post_request(url, headers):
     return (yield from response.json())
 
 @asyncio.coroutine
-def http_get_request(url, headers):
-    response = yield from aiohttp.get(url, headers=headers)
+def http_get_request(url, headers, params={}):
+    response = yield from aiohttp.get(url, headers=headers, params=params)
     if not response.status == 200:
         text = yield from response.text()
         log.error("URL: %s" % url)
@@ -28,3 +28,16 @@ def http_get_request(url, headers):
         response.close()
         return ""
     return (yield from response.json())
+
+@asyncio.coroutine
+def http_get_xml_request(url, headers, params={}):
+    response = yield from aiohttp.get(url, headers=headers, params=params)
+    if not response.status == 200:
+        text = yield from response.text()
+        log.error("URL: %s" % url)
+        log.error("Response status code was %s" % str(response.status))
+        log.error(response.headers)
+        log.error(text)
+        response.close()
+        return ""
+    return (yield from response.text())
