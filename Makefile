@@ -55,6 +55,15 @@ test: install
 run:
 	PYTHONWARNINGS=default PYTHONASYNCIODEBUG=1 $(ENV)/bin/charlesbot
 
+rundeck-server:
+	docker run \
+		-d \
+		-p 4440:4440 \
+		-e RUNDECK_PASSWORD=runduck \
+		-e SERVER_URL=http://my.rundeck.test:4440 \
+		-t jordan/rundeck:latest
+	@echo "Be sure to have a '172.17.0.1 my.rundeck.test' entry in your /etc/hosts"
+
 # e.g. PART=major make release
 # e.g. PART=minor make release
 # e.g. PART=patch make release

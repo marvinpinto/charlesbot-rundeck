@@ -54,6 +54,29 @@ entry to the ``main`` section:
 
 TODO: If there is any more configuration, mention it here.
 
+Rundeck ACL Policy
+~~~~~~~~~~~~~~~~~~
+
+Make sure you have a ``apitoken.aclpolicy`` file that looks something like:
+
+.. code:: yaml
+
+    description: API project level access control
+    context:
+      project: '.*' # all projects
+    for:
+      # ...
+      job:
+        - allow: '*'
+      # ...
+    by:
+      group: api_token_group
+
+You essentially need to give the ``api_token_group`` the ability to enable and
+disable executions for all jobs in all projects (more details__)
+
+__ http://rundeck.org/docs/administration/access-control-policy.html#special-api-token-authentication-group
+
 Sample config file
 ~~~~~~~~~~~~~~~~~~
 
