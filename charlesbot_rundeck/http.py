@@ -19,7 +19,7 @@ def http_post_request(url, headers):  # pragma: no cover
 
 
 @asyncio.coroutine
-def http_get_request(url, headers, params={}):  # pragma: no cover
+def http_get_request(url, headers, params):  # pragma: no cover
     response = yield from aiohttp.get(url, headers=headers, params=params)
     if not response.status == 200:
         text = yield from response.text()

@@ -33,4 +33,8 @@ class RundeckJob(BaseObject):
         }
         result = yield from http_get_request(url, headers, params)
         result = json.loads(result)
+
+        if len(result) != 1:
+            return False
         self.load(result[0])
+        return True

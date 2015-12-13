@@ -114,7 +114,7 @@ class RundeckLock(object):
                                           # does not return json :(
             "X-Rundeck-Auth-Token": self.rundeck_token,
         }
-        response = yield from http_get_request(url, headers)
+        response = yield from http_get_request(url, headers, {})
         xml_root = etree.fromstring(response)
         execution_enabled = xml_root[0].find("executionEnabled").text
         rundeck_job_obj.execution_enabled = False
@@ -176,9 +176,15 @@ class RundeckLock(object):
     def load_rundeck_jobs(self, rd_jobs_raw_list):
         for job in rd_jobs_raw_list:
             rd_job = RundeckJob(friendly_name=job['friendly_name'])
-            yield from rd_job.retrieve_rundeck_job_info(self.rundeck_token,
-                                                        self.rundeck_url,
-                                                        job['project'],
-                                                        job['name'])
+            job_loaded_successfully = yield from rd_job.retrieve_rundeck_job_info(  # NOQA
+                self.rundeck_token,
+                self.rundeck_url,
+                job['project'],
+                job['name']
+            )
+
+            if not job_loaded_successfully:
+                self.log.warning("Could not retrieve job info for: %s" % job['friendly_name'])  # NOQA
+                continue
             self.log.info("Retrieved Rundeck info for job: %s" % job['friendly_name'])  # NOQA
             self.rundeck_jobs.append(rd_job)
