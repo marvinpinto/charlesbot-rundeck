@@ -12,10 +12,6 @@ class Rundeck(BasePlugin):
     def __init__(self):
         super().__init__("Rundeck")
         self.load_config()
-        self.rundeck_lock = RundeckLock(self.rundeck_token,
-                                        self.rundeck_url,
-                                        self.topic_channel,
-                                        self.rd_jobs_raw_list)
 
     def load_config(self):  # pragma: no cover
         config_dict = configuration.get()
@@ -27,6 +23,10 @@ class Rundeck(BasePlugin):
         except KeyError:
             self.topic_channel = None
         self.rd_jobs_raw_list = config_dict['rundeck']['lock_jobs']
+        self.rundeck_lock = RundeckLock(self.rundeck_token,
+                                        self.rundeck_url,
+                                        self.topic_channel,
+                                        self.rd_jobs_raw_list)
 
     def get_help_message(self):
         help_msg = []
@@ -44,7 +44,7 @@ class Rundeck(BasePlugin):
             return
 
         parsed_message = parse_msg_with_prefix("!lock", message.text)
-        if not parsed_message:  # pragma: no cover
+        if not parsed_message:
             return
 
         if does_msg_contain_prefix("acquire", parsed_message):
