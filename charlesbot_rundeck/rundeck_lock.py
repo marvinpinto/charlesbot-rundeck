@@ -6,7 +6,6 @@ from charlesbot.slack.slack_user import SlackUser
 from charlesbot.slack.slack_message import SlackMessage
 from charlesbot.slack.slack_connection import SlackConnection
 from charlesbot_rundeck.http import http_get_request
-from charlesbot_rundeck.http import http_get_xml_request
 from charlesbot_rundeck.http import http_post_request
 from charlesbot_rundeck.rundeck_job import RundeckJob
 import xml.etree.ElementTree as etree
@@ -120,7 +119,7 @@ class RundeckLock(object):
                                           # does not return json :(
             "X-Rundeck-Auth-Token": self.rundeck_token,
         }
-        response = yield from http_get_xml_request(url, headers)
+        response = yield from http_get_request(url, headers)
         xml_root = etree.fromstring(response)
         execution_enabled = xml_root[0].find("executionEnabled").text
         rundeck_job_obj.execution_enabled = False

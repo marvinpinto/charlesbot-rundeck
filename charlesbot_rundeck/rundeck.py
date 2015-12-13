@@ -4,8 +4,6 @@ from charlesbot.util.parse import parse_msg_with_prefix
 from charlesbot.util.parse import does_msg_contain_prefix
 from charlesbot.slack.slack_user import SlackUser
 from charlesbot.slack.slack_message import SlackMessage
-from charlesbot_rundeck.http import http_get_request
-from charlesbot_rundeck.http import http_post_request
 from charlesbot_rundeck.rundeck_lock import RundeckLock
 import asyncio
 import json
@@ -57,4 +55,3 @@ class Rundeck(BasePlugin):
             yield from self.rundeck_lock.toggle_rundeck_lock(message, lock_job=False)
         elif does_msg_contain_prefix("status", parsed_message):
             yield from self.rundeck_lock.print_lock_status(message)
-

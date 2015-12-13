@@ -28,4 +28,5 @@ class RundeckJob(BaseObject):
             "jobExactFilter": job_name,
         }
         result = yield from http_get_request(url, headers, params)
+        result = json.loads(result)
         self.load(result[0])
