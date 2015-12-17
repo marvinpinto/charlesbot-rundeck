@@ -24,7 +24,7 @@ class RundeckLock(object):
         self.seed_job_list()
 
     @asyncio.coroutine
-    def toggle_rundeck_lock(self, slack_message, lock_job):
+    def toggle_rundeck_lock(self, slack_message, lock_job):  # pragma: no cover
         """
         Coordinating function to toggle the Rundeck lock from open to locked,
         or visa versa. This is the user-triggered function.
@@ -48,9 +48,6 @@ class RundeckLock(object):
 
         self.log.info("Rundeck jobs locked: %s" % lock_job)
         self.log.info("Job state toggled by @%s" % slack_user.name)
-
-        # To verify the current execution state
-        yield from self.trigger_rundeck_executions_allowed_update()
 
         full_slack_msg = self.get_execution_status_message(lock_job)
         yield from self.set_channel_topic(lock_job)
