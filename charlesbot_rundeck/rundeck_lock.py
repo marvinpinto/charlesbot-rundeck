@@ -170,11 +170,15 @@ class RundeckLock(object):
 
     def seed_job_list(self):  # pragma: no cover
         loop = asyncio.get_event_loop()
-        loop.create_task(self.load_rundeck_jobs(self.rd_jobs_raw_list))
+        loop.create_task(self.load_rundeck_jobs())
 
     @asyncio.coroutine
-    def load_rundeck_jobs(self, rd_jobs_raw_list):
-        for job in rd_jobs_raw_list:
+    def load_rundeck_jobs(self):
+        """
+        Read the rd_jobs_raw_list array and load the information about all
+        those jobs into the `rundeck_jobs` list.
+        """
+        for job in self.rd_jobs_raw_list:
             rd_job = RundeckJob(friendly_name=job['friendly_name'])
             job_loaded_successfully = yield from rd_job.retrieve_rundeck_job_info(  # NOQA
                 self.rundeck_token,
