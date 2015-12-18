@@ -38,8 +38,7 @@ class TestUpdateExecutionEnabledStatus(asynctest.TestCase):
         ]
         self.mock_http_get_request.side_effect = side_effect
         yield from self.rd_lock.trigger_rundeck_executions_allowed_update()
-        self.assertFalse(rd_job1.execution_enabled)
-        self.assertFalse(rd_job2.execution_enabled)
+        self.assertEqual({False, False}, {rd_job1.execution_enabled, rd_job2.execution_enabled})  # NOQA
 
     def test_multiple_tasks_execution_enabled(self):
         rd_job1 = RundeckJob(friendly_name="job1")
@@ -54,29 +53,19 @@ class TestUpdateExecutionEnabledStatus(asynctest.TestCase):
         ]
         self.mock_http_get_request.side_effect = side_effect
         yield from self.rd_lock.trigger_rundeck_executions_allowed_update()
-        self.assertTrue(rd_job1.execution_enabled)
-        self.assertTrue(rd_job2.execution_enabled)
+        self.assertEqual({True, True}, {rd_job1.execution_enabled, rd_job2.execution_enabled})  # NOQA
 
     def test_multiple_tasks_mixed_execution_states(self):
         rd_job1 = RundeckJob(friendly_name="job1")
         rd_job2 = RundeckJob(friendly_name="job2")
-        rd_job3 = RundeckJob(friendly_name="job3")
-        rd_job4 = RundeckJob(friendly_name="job4")
         self.rd_lock.rundeck_jobs = [
             rd_job1,
             rd_job2,
-            rd_job3,
-            rd_job4
         ]
         side_effect = [
-            "<joblist><job><description></description><executionEnabled>true</executionEnabled></job></joblist>",  # NOQA
-            "<joblist><job><description></description><executionEnabled>true</executionEnabled></job></joblist>",  # NOQA
             "<joblist><job><description></description><executionEnabled>true</executionEnabled></job></joblist>",  # NOQA
             "<joblist><job><description></description><executionEnabled>false</executionEnabled></job></joblist>",  # NOQA
         ]
         self.mock_http_get_request.side_effect = side_effect
         yield from self.rd_lock.trigger_rundeck_executions_allowed_update()
-        self.assertTrue(rd_job1.execution_enabled)
-        self.assertTrue(rd_job2.execution_enabled)
-        self.assertTrue(rd_job3.execution_enabled)
-        self.assertFalse(rd_job4.execution_enabled)
+        self.assertEqual({True, False}, {rd_job1.execution_enabled, rd_job2.execution_enabled})  # NOQA
