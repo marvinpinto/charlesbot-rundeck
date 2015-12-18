@@ -72,9 +72,6 @@ class RundeckLock(object):
                 return self.topic_channel_id
         return None
 
-    def get_locked_by_user(self):
-        return self.locked_by_user
-
     @asyncio.coroutine
     def lock_or_unlock_rundeck_job(self, rundeck_job_obj, lock_job):
         """
@@ -122,20 +119,18 @@ class RundeckLock(object):
         """
         Return an appropriate user-facing message
         """
-        locked_by_user = self.get_locked_by_user()
         if lock_job:
-            return ":lock: Rundeck executions locked by <@%s> :lock:" % locked_by_user  # NOQA
+            return ":lock: Rundeck executions locked by <@%s> :lock:" % self.locked_by_user  # NOQA
         return "Rundeck executions enabled! :white_check_mark:"
 
     @asyncio.coroutine
     def set_channel_topic(self, lock_job):
         topic_channel_id = yield from self.get_topic_channel_id()
-        locked_by_user = self.get_locked_by_user()
         if not topic_channel_id:
             return
         topic_message = ""
         if lock_job:
-            topic_message = ":lock: Rundeck executions locked by @%s :lock:" % locked_by_user  # NOQA
+            topic_message = ":lock: Rundeck executions locked by @%s :lock:" % self.locked_by_user  # NOQA
         yield from self.slack.api_call('channels.setTopic',
                                        channel=topic_channel_id,
                                        topic=topic_message)
