@@ -1,6 +1,6 @@
-===============================
+=========================
 Charlesbot Rundeck Plugin
-===============================
+=========================
 
 .. image:: https://img.shields.io/travis/marvinpinto/charlesbot-rundeck/master.svg?style=flat-square
     :target: https://travis-ci.org/marvinpinto/charlesbot-rundeck
@@ -12,7 +12,7 @@ Charlesbot Rundeck Plugin
     :target: LICENSE.txt
     :alt: Software License
 
-A Charlesbot__ plugin to do a really awesome thing!
+A Charlesbot__ plugin that integrates with Rundeck!
 
 __ https://github.com/marvinpinto/charlesbot
 
@@ -24,11 +24,19 @@ This plugin adds the following ``!help`` targets:
 
 .. code:: text
 
-    !command - Do a thing!
+    !lock status - Prints the status of the Rundeck deployment lock
+    !lock acquire - Acquires the Rundeck deployment lock (only available to Slack admins)
+    !lock release - Releases the Rundeck deployment lock (only available to Slack admins)
+
+The ``!lock`` commands are designed to give folks the ability to quickly and
+efficiently disable (and enable) individual Rundeck__ jobs. This is very useful
+when troubleshooting a production issue where you don't want additional
+deployments going out and adding fuel to the fire.
+
+__ http://rundeck.org/
 
 TODO: Fill in a description about what this plugin does and how it works.
 Screenshots are helpful, too!
-
 
 Installation
 ------------
@@ -52,18 +60,40 @@ entry to the ``main`` section:
       enabled_plugins:
         - 'charlesbot_rundeck.rundeck.Rundeck'
 
-TODO: If there is any more configuration, mention it here.
-
-Sample config file
+Rundeck ACL Policy
 ~~~~~~~~~~~~~~~~~~
+
+Make sure you have a ``apitoken.aclpolicy`` file that looks something like:
 
 .. code:: yaml
 
-    main:
-      slackbot_token: 'xoxb-1234'
-      enabled_plugins:
-        - 'charlesbot_rundeck.rundeck.Rundeck'
+    description: API project level access control
+    context:
+      project: '.*' # all projects
+    for:
+      # ...
+      job:
+        - allow: '*'
+      # ...
+    by:
+      group: api_token_group
 
+You essentially need to give the ``api_token_group`` the ability to enable and
+disable executions for all jobs in all projects (more details__)
+
+__ http://rundeck.org/docs/administration/access-control-policy.html#special-api-token-authentication-group
+
+
+Notes
+-----
+
+Rundeck 2.6.2 introduces the ability to enable or disable ``passive`` mode
+programatically using the ``system/executions`` endpoint__. This endpoint
+unfortunately did not work for this use-case because it disables **all**
+Rundeck job executions. This plugin is more geared towards folks who would
+rather disable individual jobs executions.
+
+__ http://rundeck.org/2.6.2/api/index.html#execution-mode
 
 License
 -------
