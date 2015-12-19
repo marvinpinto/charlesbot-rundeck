@@ -17,7 +17,7 @@ test_requirements = [
 
 setup(
     name='charlesbot-rundeck',
-    version='0.2.0',
+    version='0.2.1',
     description="A Charlesbot plugin that integrates with Rundeck",
     long_description=readme,
     author="Marvin Pinto",
