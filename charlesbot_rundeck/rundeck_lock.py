@@ -151,9 +151,9 @@ class RundeckLock(object):
         out_message.append("```")
         for job in self.rundeck_jobs:
             if job.execution_enabled:
-                out_message.append("%s: Unlocked" % job.friendly_name)
+                out_message.append("%s: unlocked" % job.friendly_name)
             else:
-                out_message.append("%s: Locked" % job.friendly_name)
+                out_message.append("%s: locked" % job.friendly_name)
         out_message.append("```")
         yield from self.slack.send_channel_message(slack_message.channel,
                                                    "\n".join(out_message))
