@@ -29,14 +29,13 @@ This plugin adds the following ``!help`` targets:
     !lock release - Releases the Rundeck deployment lock (only available to Slack admins)
 
 The ``!lock`` commands are designed to give folks the ability to quickly and
-efficiently disable (and enable) individual Rundeck__ jobs. This is very useful
+efficiently disable (or enable) individual Rundeck__ jobs. This is very useful
 when troubleshooting a production issue where you don't want additional
 deployments going out and adding fuel to the fire.
 
 __ http://rundeck.org/
 
-TODO: Fill in a description about what this plugin does and how it works.
-Screenshots are helpful, too!
+.. image:: https://raw.githubusercontent.com/marvinpinto/charlesbot-rundeck/master/images/rundeck-lock.png
 
 Installation
 ------------
