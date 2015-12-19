@@ -24,14 +24,18 @@ class RundeckLock(object):
         self.seed_job_list()
 
     @asyncio.coroutine
-    def toggle_rundeck_lock(self, slack_message, lock_job):  # pragma: no cover
+    def populate_slack_user_object(self, username):  # pragma: no cover
+        slack_user = SlackUser()
+        yield from slack_user.retrieve_slack_user_info(self.slack, username)
+        return slack_user
+
+    @asyncio.coroutine
+    def toggle_rundeck_lock(self, slack_message, lock_job):
         """
         Coordinating function to toggle the Rundeck lock from open to locked,
         or visa versa. This is the user-triggered function.
         """
-        slack_user = SlackUser()
-        yield from slack_user.retrieve_slack_user_info(self.slack,
-                                                       slack_message.user)
+        slack_user = yield from self.populate_slack_user_object(slack_message.user)  # NOQA
 
         if not self.is_user_authorized_to_lock(slack_user):
             fail_msg = "Sorry <@%s>, you are not allowed to lock Rundeck executions." % slack_user.name  # NOQA
