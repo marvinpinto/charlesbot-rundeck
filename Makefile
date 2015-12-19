@@ -89,3 +89,4 @@ rundeck-server-bootstrap:
 .PHONY: release
 release: guard-PART
 	$(ENV)/bin/bumpversion $(PART)
+	@echo "Now manually run: git push && git push --tags"
