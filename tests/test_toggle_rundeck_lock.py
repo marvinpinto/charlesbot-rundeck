@@ -42,13 +42,13 @@ class TestToggleRundeckLock(asynctest.TestCase):
     def test_authorized_user_unlock(self):
         self.rd_lock.populate_slack_user_object.side_effect = [self.su]
         yield from self.rd_lock.toggle_rundeck_lock(self.sm, False)
-        self.assertEqual(self.rd_lock.set_channel_topic.mock_calls,
-                         [call(False)])
-        send_channel_msg_calls = [
-	    call("C001", ":white_check_mark: Rundeck executions enabled! :white_check_mark:")  # NOQA
-        ]
-        self.assertEqual(self.rd_lock.slack.send_channel_message.mock_calls,
-                         send_channel_msg_calls)
+	self.assertEqual(self.rd_lock.set_channel_topic.mock_calls,
+			 [call(False)])
+	send_channel_msg_calls = [
+	    call("C001", ":white_check_mark: Rundeck executions unlocked! :white_check_mark:")  # NOQA
+	]
+	self.assertEqual(self.rd_lock.slack.send_channel_message.mock_calls,
+			 send_channel_msg_calls)
         self.assertEqual(self.rd_lock.print_lock_status.mock_calls,
                          [call(self.sm)])
 

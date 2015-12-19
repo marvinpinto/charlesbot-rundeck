@@ -123,10 +123,10 @@ class RundeckLock(object):
     def get_execution_status_message(self, lock_job):
         """
         Return an appropriate user-facing message
-        """
-        if lock_job:
-            return ":lock: Rundeck executions locked by <@%s> :lock:" % self.locked_by_user  # NOQA
-	return ":white_check_mark: Rundeck executions enabled! :white_check_mark:"  # NOQA
+	"""
+	if lock_job:
+	    return ":lock: Rundeck executions locked by <@%s> :lock:" % self.locked_by_user  # NOQA
+	return ":white_check_mark: Rundeck executions unlocked! :white_check_mark:"  # NOQA
 
     @asyncio.coroutine
     def set_channel_topic(self, lock_job):
