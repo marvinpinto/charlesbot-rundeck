@@ -86,8 +86,9 @@ class RundeckLock(object):
             "Accept": "application/json",
             "X-Rundeck-Auth-Token": self.rundeck_token,
         }
-        yield from http_post_request(url, headers)
-        rundeck_job_obj.execution_enabled = lock_job
+        response = yield from http_post_request(url, headers)
+        if response:
+            rundeck_job_obj.execution_enabled = lock_job
 
     @asyncio.coroutine
     def trigger_rundeck_executions_allowed_update(self):
