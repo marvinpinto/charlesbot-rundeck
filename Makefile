@@ -55,14 +55,33 @@ test: install
 run:
 	PYTHONWARNINGS=default PYTHONASYNCIODEBUG=1 $(ENV)/bin/charlesbot
 
+# Helper make target to spin up a local (docker) rundeck server for you to test
+# and iterate on
 rundeck-server:
 	docker run \
 		-d \
+		-v $(shell pwd)/bootstrap/framework.properties:/etc/rundeck/framework.properties \
+		-v $(shell pwd)/bootstrap/tokens.properties:/etc/rundeck/tokens.properties \
+		-v $(shell pwd)/bootstrap/apitoken.aclpolicy:/etc/rundeck/apitoken.aclpolicy \
 		-p 4440:4440 \
 		-e RUNDECK_PASSWORD=runduck \
 		-e SERVER_URL=http://my.rundeck.test:4440 \
 		-t jordan/rundeck:latest
 	@echo "Be sure to have a '172.17.0.1 my.rundeck.test' entry in your /etc/hosts"
+
+# Helper make target to bootstrap your local (docker) rundeck server with some
+# boilerplate project + jobs, for you to get going!
+rundeck-server-bootstrap:
+	curl -X POST \
+		-H "Content-Type: application/json" \
+		-H "X-Rundeck-Auth-Token: baiY8aw4Ieng0aQuoo" \
+		--data-binary "@bootstrap/test_project.json" \
+		http://my.rundeck.test:4440/api/11/projects
+	curl -X POST \
+		-H "Content-Type: application/yaml" \
+		-H "X-Rundeck-Auth-Token: baiY8aw4Ieng0aQuoo" \
+		--data-binary "@bootstrap/test_job.yaml" \
+		http://my.rundeck.test:4440/api/14/jobs/import?project=test-project
 
 # e.g. PART=major make release
 # e.g. PART=minor make release
