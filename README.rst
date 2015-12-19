@@ -58,6 +58,30 @@ entry to the ``main`` section:
       enabled_plugins:
         - 'charlesbot_rundeck.rundeck.Rundeck'
 
+Create a ``rundeck`` section that looks something similar to:
+
+.. code:: yaml
+
+    rundeck:
+      token: 'XXXX'  # Rundeck token
+      url: 'http://my.rundeck.test:4440'  # Rundeck base URL
+
+      # If you would like to set this channel's topic to something relevant
+      # whenever Rundeck jobs are locked, set this value. Otherwise you can omit
+      # it completely.
+      deployment_status_channel: 'charlesbot-rundeck-test-channel'
+
+      # project: project name
+      # name: job name
+      # friendly_name: friendly display name
+      lock_jobs:
+        - project: 'test-project'
+          name: 'deploy-website'
+          friendly_name: 'deploy website'
+        - project: 'test-project'
+          name: 'deploy-app'
+          friendly_name: 'deploy app'
+
 Rundeck ACL Policy
 ~~~~~~~~~~~~~~~~~~
 
@@ -112,19 +136,19 @@ Create a local ``development.yaml`` file that looks something like the following
     main:
       slackbot_token: 'xoxb-...'
       enabled_plugins:
-	- 'charlesbot_rundeck.rundeck.Rundeck'
+        - 'charlesbot_rundeck.rundeck.Rundeck'
 
     rundeck:
       token: 'baiY8aw4Ieng0aQuoo'
       url: 'http://my.rundeck.test:4440'
       deployment_status_channel: 'charlesbot-rundeck-test-channel'
       lock_jobs:
-	- project: 'test-project'
-	  name: 'deploy-website'
-	  friendly_name: 'deploy website'
-	- project: 'test-project'
-	  name: 'deploy-app'
-	  friendly_name: 'deploy app'
+        - project: 'test-project'
+          name: 'deploy-website'
+          friendly_name: 'deploy website'
+        - project: 'test-project'
+          name: 'deploy-app'
+          friendly_name: 'deploy app'
 
 Add the following entry to your ``/etc/hosts`` file.
 
