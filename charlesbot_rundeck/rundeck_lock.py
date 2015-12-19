@@ -126,7 +126,7 @@ class RundeckLock(object):
         """
         if lock_job:
             return ":lock: Rundeck executions locked by <@%s> :lock:" % self.locked_by_user  # NOQA
-        return "Rundeck executions enabled! :white_check_mark:"
+	return ":white_check_mark: Rundeck executions enabled! :white_check_mark:"  # NOQA
 
     @asyncio.coroutine
     def set_channel_topic(self, lock_job):
