@@ -126,7 +126,7 @@ class RundeckLock(object):
         """
         if lock_job:
             return ":lock: Rundeck executions locked by <@%s> :lock:" % self.locked_by_user  # NOQA
-        return "Rundeck executions enabled! :white_check_mark:"
+        return ":white_check_mark: Rundeck executions unlocked! :white_check_mark:"  # NOQA
 
     @asyncio.coroutine
     def set_channel_topic(self, lock_job):
@@ -151,9 +151,9 @@ class RundeckLock(object):
         out_message.append("```")
         for job in self.rundeck_jobs:
             if job.execution_enabled:
-                out_message.append("%s: No" % job.friendly_name)
+                out_message.append("%s: Unlocked" % job.friendly_name)
             else:
-                out_message.append("%s: Yes" % job.friendly_name)
+                out_message.append("%s: Locked" % job.friendly_name)
         out_message.append("```")
         yield from self.slack.send_channel_message(slack_message.channel,
                                                    "\n".join(out_message))

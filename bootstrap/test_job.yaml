@@ -1,0 +1,20 @@
+-
+  project: test-project
+  loglevel: INFO
+  sequence:
+    keepgoing: false
+    strategy: node-first
+    commands:
+    - exec: echo This job deploys a website
+  description: 'This is a test job to deploy a website'
+  name: deploy-website
+-
+  project: test-project
+  loglevel: INFO
+  sequence:
+    keepgoing: false
+    strategy: node-first
+    commands:
+    - exec: echo This job deploys an app
+  description: 'This is a test job to deploy an app'
+  name: deploy-app

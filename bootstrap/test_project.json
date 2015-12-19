@@ -1,0 +1,9 @@
+{
+  "name": "test-project",
+  "description": "Test Project",
+  "config":
+   {
+     "test.property":
+     "test.value"
+   }
+}

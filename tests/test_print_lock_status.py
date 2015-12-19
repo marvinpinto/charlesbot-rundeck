@@ -41,7 +41,7 @@ class TestPrintLockStatus(asynctest.TestCase):
         expected_slack_msg_raw = []
         expected_slack_msg_raw.append("*Rundeck Job Lock Report*")
         expected_slack_msg_raw.append("```")
-        expected_slack_msg_raw.append("job1: No")
+        expected_slack_msg_raw.append("job1: Unlocked")
         expected_slack_msg_raw.append("```")
         expected_slack_msg = "\n".join(expected_slack_msg_raw)
         expected_call = call("sixchan", expected_slack_msg)
@@ -56,7 +56,7 @@ class TestPrintLockStatus(asynctest.TestCase):
         expected_slack_msg_raw = []
         expected_slack_msg_raw.append("*Rundeck Job Lock Report*")
         expected_slack_msg_raw.append("```")
-        expected_slack_msg_raw.append("job1: Yes")
+        expected_slack_msg_raw.append("job1: Locked")
         expected_slack_msg_raw.append("```")
         expected_slack_msg = "\n".join(expected_slack_msg_raw)
         expected_call = call("sixchan", expected_slack_msg)
@@ -73,9 +73,9 @@ class TestPrintLockStatus(asynctest.TestCase):
         expected_slack_msg_raw = []
         expected_slack_msg_raw.append("*Rundeck Job Lock Report*")
         expected_slack_msg_raw.append("```")
-        expected_slack_msg_raw.append("job1: Yes")
-        expected_slack_msg_raw.append("job3: No")
-        expected_slack_msg_raw.append("job2: Yes")
+        expected_slack_msg_raw.append("job1: Locked")
+        expected_slack_msg_raw.append("job3: Unlocked")
+        expected_slack_msg_raw.append("job2: Locked")
         expected_slack_msg_raw.append("```")
         expected_slack_msg = "\n".join(expected_slack_msg_raw)
         expected_call = call("sixchan", expected_slack_msg)

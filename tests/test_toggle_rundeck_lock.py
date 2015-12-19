@@ -45,7 +45,7 @@ class TestToggleRundeckLock(asynctest.TestCase):
         self.assertEqual(self.rd_lock.set_channel_topic.mock_calls,
                          [call(False)])
         send_channel_msg_calls = [
-            call("C001", "Rundeck executions enabled! :white_check_mark:")
+            call("C001", ":white_check_mark: Rundeck executions unlocked! :white_check_mark:")  # NOQA
         ]
         self.assertEqual(self.rd_lock.slack.send_channel_message.mock_calls,
                          send_channel_msg_calls)
